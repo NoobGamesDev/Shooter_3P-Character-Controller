@@ -19,6 +19,19 @@ enum class ECombatState : uint8
 	
 };
 
+USTRUCT(BlueprintType)
+struct FInterpLocation
+{
+	GENERATED_BODY()
+
+	// Scene component to use for its location for Interping
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* SceneComponent;
+
+	// Number of Items interping to/at this scene component location
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 ItemCount;
+};
 UCLASS()
 class SHOOTER_3P_API AShooterCharacter : public ACharacter
 {
@@ -149,6 +162,10 @@ protected:
 	void StopAiming();
 
 	void PickupAmmo(class AAmmo* Ammo);
+
+	void InitializeInterpLocations();
+
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -375,6 +392,31 @@ private:
 
 	// Used for aiming button pressed verification
 	bool bAimingButtonPressed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* WeaponInterpComp;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp2;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp3;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp4;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp5;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* InterpComp6;
+
+	// Array of Interp Location Structs
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TArray<FInterpLocation> InterpLocations;
 	
 public:
 	// Returns CameraBoom subobject
@@ -392,10 +434,18 @@ public:
 	// Adds/subtracts to/from OverlappedItemCount and updates bShouldTraceForItems
 	void IncrementOverlappedItemCount(int8 Amount);
 
-	FVector GetCameraInterpLocation();
+	// TODO: Remove function :: AItem has the GetInterpLocation
+	//FVector GetCameraInterpLocation();
 
 	void GetPickupItem(AItem* Item);
 
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
 	FORCEINLINE bool GetCrouching() const { return bCrouching; }
+
+	FInterpLocation GetInterpLocation(int32 Index);
+
+	// Returns the index in InterpLocations array with lowest itemcount
+	int32 GetInterpLocationIndex();
+
+	void IncrementInterpLocItemCount(int32 Index, int32 Amount);
 };

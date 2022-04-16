@@ -8,6 +8,8 @@
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 
 // Sets default values
@@ -23,7 +25,9 @@ AItem::AItem():
 	bInterping(false),
 	ItemInterpX(0.f),
 	ItemInterpY(0.f),
-	InterpInititialYawOffset(0.f)
+	InterpInititialYawOffset(0.f),
+	ItemType(EItemType::EIT_MAX),
+	InterpLocIndex(0)
 
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -220,6 +224,18 @@ void AItem::StartItemCurve(AShooterCharacter* Char)
 {
 	// Store a handle to the Character
 	Character = Char;
+
+	// Get array index in InterpLocations with the lowest ItemCount
+	InterpLocIndex = Character->GetInterpLocationIndex();
+	// Add 1 to the ItemCount for the Interp Location Struct
+	Character->IncrementInterpLocItemCount(InterpLocIndex, 1);
+
+	
+	if (PickupSound)
+	{
+		UGameplayStatics::PlaySound2D(this, PickupSound);
+	}
+	
 	// Store initial location of the Item
 	ItemInterpStartLocation = GetActorLocation();
 	bInterping = true;
@@ -245,6 +261,8 @@ void AItem::FinishInterping()
 	bInterping = false;
 	if (Character)
 	{
+		// Subtract 1 from the ItemCount of the Interp Location struct
+		Character->IncrementInterpLocItemCount(InterpLocIndex, -1);
 		Character->GetPickupItem(this);
 	}
 	// Set scale back to normal
@@ -264,7 +282,7 @@ void AItem::ItemInterp(float DeltaTime)
 		// Get the item's initial location when the curve started
 		FVector ItemLocation = ItemInterpStartLocation;
 		// Get location in front of the camera
-		const FVector CameraInterpLocation { Character->GetCameraInterpLocation() };
+		const FVector CameraInterpLocation { GetInterpLocation() };
 			
 		// Delta Vector from Item to Camera Interp Location, X and Y are zeroed out
 		const FVector ItemToCamera { FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
@@ -305,4 +323,22 @@ void AItem::ItemInterp(float DeltaTime)
 			SetActorScale3D(FVector(ScaleCurveValue, ScaleCurveValue, ScaleCurveValue));
 		}
 	}
+}
+
+FVector AItem::GetInterpLocation()
+{
+	if (Character == nullptr) return FVector(0.f);
+
+	switch (ItemType)
+	{
+	case EItemType::EIT_Ammo:
+			return Character->GetInterpLocation(InterpLocIndex).SceneComponent->GetComponentLocation();
+		break;
+
+	case EItemType::EIT_Weapon:
+			return Character->GetInterpLocation(0).SceneComponent->GetComponentLocation();
+		break;
+	}
+
+	return FVector();
 }
