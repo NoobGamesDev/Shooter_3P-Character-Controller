@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Curves/CurveVector.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -19,17 +20,22 @@ AItem::AItem():
 	ItemRarity(EItemRarity::EIR_Common),
 	ItemState(EItemState::EIS_Pickup),
 	// Item Interp variables
-	ZCurveTime(0.7f),
 	ItemInterpStartLocation(FVector(0.f)),
 	CameraTargetLocation(FVector(0.f)),
+	ZCurveTime(0.7f),
 	bInterping(false),
 	ItemInterpX(0.f),
 	ItemInterpY(0.f),
 	InterpInititialYawOffset(0.f),
 	ItemType(EItemType::EIT_MAX),
 	InterpLocIndex(0),
-	MaterialIndex(0)
-
+	MaterialIndex(0),
+	bCanChangeCustomDepth(true),
+	// Dynamic Material parameters
+	GlowAmount(150.f),
+	FresnelExponent(3.f),
+	FresnelReflectFraction(4.f),
+	PulseCurveTime(5.f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -73,6 +79,8 @@ void AItem::BeginPlay()
 
 	// Set Custom Depth to Disabled
 	InitializeCustomDepth();
+
+	StartPulseTimer();
 }
 
 // Called every frame
@@ -81,7 +89,8 @@ void AItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	// Handle the Item interpolation when in the EquipInterping state
 	ItemInterp(DeltaTime);
-
+	// Get curve values from PulseCurve and set Dynamic Material parameters
+	UpdatePulse();
 }
 
 void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -218,6 +227,23 @@ void AItem::SetItemProperties(EItemState State)
 	}
 }
 
+void AItem::StartPulseTimer()
+{
+	if (ItemState == EItemState::EIS_Pickup)
+	{
+		GetWorldTimerManager().SetTimer(
+			PulseTimer,
+			this,
+			&AItem::ResetPulseTimer,
+			PulseCurveTime);
+	}
+}
+
+void AItem::ResetPulseTimer()
+{
+	StartPulseTimer();
+}
+
 void AItem::SetItemState(EItemState State)
 {
 	ItemState = State;
@@ -253,6 +279,8 @@ void AItem::StartItemCurve(AShooterCharacter* Char)
 	const float ItemRotationYaw{ float(GetActorRotation().Yaw) };
 	// Initial Yaw offset between Camera and Item
 	InterpInititialYawOffset = ItemRotationYaw - CameraRotationYaw;
+
+	bCanChangeCustomDepth = false;
 	
 }
 
@@ -267,6 +295,11 @@ void AItem::FinishInterping()
 	}
 	// Set scale back to normal
 	SetActorScale3D(FVector(1.f));
+	// Disable the GlowMaterial and CustomDepth for Item
+	DisableGlowMaterial();
+	bCanChangeCustomDepth = true;
+	DisableCustomDepth();
+	
  }
 
 void AItem::ItemInterp(float DeltaTime)
@@ -375,12 +408,18 @@ void AItem::PlayEquipSound()
 
 void AItem::EnableCustomDepth()
 {
-	ItemMesh->SetRenderCustomDepth(true);
+	if (bCanChangeCustomDepth)
+	{
+		ItemMesh->SetRenderCustomDepth(true);
+	}
 }
 
 void AItem::DisableCustomDepth()
 {
-	ItemMesh->SetRenderCustomDepth(false);
+	if (bCanChangeCustomDepth)
+	{
+		ItemMesh->SetRenderCustomDepth(false);
+	}
 }
 
 void AItem::InitializeCustomDepth()
@@ -395,5 +434,37 @@ void AItem::OnConstruction(const FTransform& Transform)
 	{
 		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
 		ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
+	}
+	EnableGlowMaterial();
+}
+
+void AItem::EnableGlowMaterial()
+{
+	if (DynamicMaterialInstance)
+	{
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("GlowBlendAlpha"), 0);
+	}
+}
+
+void AItem::UpdatePulse()
+{
+	if (ItemState != EItemState::EIS_Pickup) return;
+
+	const float ElapsedTime { GetWorldTimerManager().GetTimerElapsed(PulseTimer) };
+	if (PulseCurve)
+	{
+		const FVector CurveValue { PulseCurve->GetVectorValue(ElapsedTime) };
+
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("GlowAmount"), CurveValue.X * GlowAmount);
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelExponent"), CurveValue.Y * FresnelExponent);
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelReflectFraction"), CurveValue.Z * FresnelReflectFraction);
+	}
+}
+
+void AItem::DisableGlowMaterial()
+{
+	if (DynamicMaterialInstance)
+	{
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("GlowBlendAlpha"), 1);
 	}
 }
