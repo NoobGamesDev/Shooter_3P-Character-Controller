@@ -27,7 +27,8 @@ AItem::AItem():
 	ItemInterpY(0.f),
 	InterpInititialYawOffset(0.f),
 	ItemType(EItemType::EIT_MAX),
-	InterpLocIndex(0)
+	InterpLocIndex(0),
+	MaterialIndex(0)
 
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -69,6 +70,9 @@ void AItem::BeginPlay()
 
 	// Set Item properties based on ItemState
 	SetItemProperties(ItemState);
+
+	// Set Custom Depth to Disabled
+	InitializeCustomDepth();
 }
 
 // Called every frame
@@ -366,5 +370,30 @@ void AItem::PlayEquipSound()
 				UGameplayStatics::PlaySound2D(this, EquipSound);
 			}
 		}
+	}
+}
+
+void AItem::EnableCustomDepth()
+{
+	ItemMesh->SetRenderCustomDepth(true);
+}
+
+void AItem::DisableCustomDepth()
+{
+	ItemMesh->SetRenderCustomDepth(false);
+}
+
+void AItem::InitializeCustomDepth()
+{
+	DisableCustomDepth();
+}
+
+void AItem::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	if (MaterialInstance)
+	{
+		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+		ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
 	}
 }

@@ -86,14 +86,17 @@ protected:
 	FVector GetInterpLocation();
 
 	void PlayPickupSound();
-	
+
+	virtual void InitializeCustomDepth();
+
+	virtual void OnConstruction(const FTransform& Transform) override; 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called in AShooterCharacter::GetPickupItem
 	void PlayEquipSound();
-
+	
 private:
 	// SkeletalMesh for the Item
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -183,6 +186,18 @@ private:
 	// Index of the interp location this item is interping to
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 InterpLocIndex;
+
+	// Index for the Item Materials that needs change at Runtime
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 MaterialIndex;
+
+	// Dynamic Instance that we can change at Runtime
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
+	// Material Instance used with the Dynamic Material [to change at Runtime]
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UMaterialInstance* MaterialInstance;
 	
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
@@ -197,4 +212,7 @@ public:
 
 	// Called from the AShooterCharacter class
 	void StartItemCurve(AShooterCharacter* Char);
+
+	virtual void EnableCustomDepth();
+	virtual void DisableCustomDepth();
 };
