@@ -12,7 +12,11 @@
 <br>
 <h2>Screenshots: </h2>
 
- ![image](https://user-images.githubusercontent.com/20015201/163691655-90e8b665-362e-447d-813b-5551999b2af4.png)
+<b>Reload Animation</b><br>
+ ![image](https://user-images.githubusercontent.com/20015201/163691655-90e8b665-362e-447d-813b-5551999b2af4.png)<br>
+<b>Weapons & Ammo Pickups</b><br>
+ ![image](https://user-images.githubusercontent.com/20015201/163691846-ee180613-5a1c-4dfc-b153-0651d8e57266.png)<br>
+
 
 <h2>Documentation: </h2>
 Instructions on how-to use this, can be found in the <a href="https://github.com/CheapWebdesign/Shooter_3P/wiki">Wiki section</a>.
