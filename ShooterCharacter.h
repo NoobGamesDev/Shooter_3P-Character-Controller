@@ -32,6 +32,9 @@ struct FInterpLocation
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 ItemCount;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlotIndex, int32, NewSlotIndex);
+
 UCLASS()
 class SHOOTER_3P_API AShooterCharacter : public ACharacter
 {
@@ -165,6 +168,14 @@ protected:
 
 	void InitializeInterpLocations();
 
+	void FKeyPressed();
+	void OneKeyPressed();
+	void TwoKeyPressed();
+	void ThreeKeyPressed();
+	void FourKeyPressed();
+	void FiveKeyPressed();
+
+	void ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex);
 	
 public:	
 	// Called every frame
@@ -433,6 +444,16 @@ private:
 	// Time to wait before we can play another Equip sound
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Items", meta = (AllowPrivateAccess = "true"))
 	float EquipSoundResetTime;
+
+	// Array of AItems for the Inventory System
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	TArray<AItem*> Inventory;
+
+	const int32 INVENTORY_CAPACITY{ 6 };
+
+	// Delegate for sending slot information to InventoryBar when Equipping
+	UPROPERTY(BlueprintAssignable, Category = "Delegates",  meta = (AllowPrivateAccess = "true"))
+	FEquipItemDelegate EquipItemDelegate;
 	
 public:
 	// Returns CameraBoom subobject
