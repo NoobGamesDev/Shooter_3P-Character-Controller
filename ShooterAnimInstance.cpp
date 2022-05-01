@@ -37,8 +37,10 @@ void UShooterAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	if (ShooterCharacter)
 	{
 		bCrouching = ShooterCharacter->GetCrouching();
-		// rReloading Bool same as CombatState is Reloading
+		// Reloading Bool same as CombatState is Reloading
 		bReloading = ShooterCharacter->GetCombatState() == ECombatState::ECS_Reloading;
+		bEquipping = ShooterCharacter->GetCombatState() == ECombatState::ECS_Equipping;
+
 		
 		// Get lateral speed of Character from velocity
 		FVector Velocity{ShooterCharacter->GetVelocity()};
@@ -150,7 +152,7 @@ void UShooterAnimInstance::TurnInPlace()
 	// Set the Recoil Weight
 	if (bTurningInPlace)
 	{
-		if (bReloading)
+		if (bReloading || bEquipping)
 		{
 			RecoilWeight = 1.f;
 		}
@@ -163,7 +165,7 @@ void UShooterAnimInstance::TurnInPlace()
 		{
 		if (bCrouching)
 		{
-			if (bReloading)
+			if (bReloading || bEquipping)
 			{
 				RecoilWeight = 1.f;
 			}
@@ -174,7 +176,7 @@ void UShooterAnimInstance::TurnInPlace()
 		}
 		else
 		{
-			if (bAiming || bReloading)
+			if (bAiming || bReloading || bEquipping)
 			{
 				RecoilWeight = 1.f;
 			}
