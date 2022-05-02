@@ -468,12 +468,57 @@ void AItem::InitializeCustomDepth()
 void AItem::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+
+	// Load the data in the ItemRarity DataTable
+
+	// Path to the ItemRarity DataTable
+	FString RarityTablePath(TEXT("DataTable'/Game/_Game/DataTable/DT_ItemRarity.DT_ItemRarity'"));
+	UDataTable* RarityTableObject = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr,*RarityTablePath));
+	if (RarityTableObject)
+	{
+		FItemRarityTable* RarityRow = nullptr;
+		switch (ItemRarity)
+		{
+		case EItemRarity::EIR_Damaged:
+			RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Damaged"), TEXT(""), true);
+			break;
+		case EItemRarity::EIR_Common:
+			RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Common"), TEXT(""), true);
+			break;
+		case EItemRarity::EIR_Uncommon:
+			RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Uncommon"), TEXT(""), true);
+			break;
+		case EItemRarity::EIR_Rare:
+			RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Rare"), TEXT(""), true);
+			break;
+		case EItemRarity::EIR_Legendary:
+			RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Legendary"), TEXT(""), true);
+			break;
+		}
+		
+		if (RarityRow)
+		{
+			GlowColor = RarityRow->GlowColor;
+			LightColor = RarityRow->LightColor;
+			DarkColor = RarityRow->DarkColor;
+			NumberOfStars = RarityRow->NumberOfStars;
+			IconBackground = RarityRow->IconBackground;
+			if (GetItemMesh())
+			{
+				GetItemMesh()->SetCustomDepthStencilValue(RarityRow->CustomDepthStencil);
+			}
+		}
+	}
+
 	if (MaterialInstance)
 	{
 		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+		DynamicMaterialInstance->SetVectorParameterValue(TEXT("FresnelColor"), GlowColor);
 		ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
+
+		EnableGlowMaterial();
 	}
-	EnableGlowMaterial();
+
 }
 
 void AItem::EnableGlowMaterial()
