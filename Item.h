@@ -247,6 +247,10 @@ private:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	int32 SlotIndex;
 
+	// Inventory Pickup Widget TEXT: pickup/swap 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	bool bCharacterInventoryFull;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
@@ -260,6 +264,7 @@ public:
 	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE void SetSlotIndex(int32 Index) { SlotIndex = Index; }
 	FORCEINLINE void SetCharacter(AShooterCharacter* Char) { Character = Char; }
+	FORCEINLINE void SetCharacterInventoryFull(bool bFull) { bCharacterInventoryFull = bFull; }
 
 	// Called from the AShooterCharacter class
 	void StartItemCurve(AShooterCharacter* Char, bool bForcePlaySound = false);
