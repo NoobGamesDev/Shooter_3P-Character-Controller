@@ -1,4 +1,4 @@
-<h2># Shooter_3P</h2>
+<h2># Shooter_3P - Character Controller for UE5</h2>
  3rd Person Shooter for <b>Unreal Engine 5</b>. 
  
  <h2>Features: </h2>
