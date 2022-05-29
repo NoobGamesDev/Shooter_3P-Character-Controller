@@ -182,6 +182,9 @@ protected:
 	int32 GetEmptyInventorySlot();
 
 	void HighlightInventorySlot();
+
+	UFUNCTION(BlueprintCallable)
+	EPhysicalSurface GetSurfaceType();
 	
 public:	
 	// Called every frame
@@ -464,6 +467,9 @@ private:
 	// The index for the currently highlighted slot
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	int32 HighlightedSlot;
+
+	UFUNCTION(BlueprintCallable)
+	void Footstep();
 	
 public:
 	// Returns CameraBoom subobject
