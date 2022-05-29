@@ -156,6 +156,9 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 			FireSound = WeaponDataRow->FireSound;
 			BoneToHide = WeaponDataRow->BoneToHide;
 			bAutomatic = WeaponDataRow->bAutomatic;
+
+			Damage = WeaponDataRow->Damage;
+			HeadShotDamage = WeaponDataRow->HeadShotDamage;
 		}
 		if (GetMaterialInstance())
 		{
