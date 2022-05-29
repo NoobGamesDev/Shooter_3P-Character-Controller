@@ -164,43 +164,27 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &AShooterCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &AShooterCharacter::LookUp);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this,
-		&AShooterCharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this,
-		&ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this,
-		&AShooterCharacter::FireButtonPressed);
-	PlayerInputComponent->BindAction("FireButton", IE_Released, this,
-	&AShooterCharacter::FireButtonReleased);
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AShooterCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction("FireButton", IE_Released, this, &AShooterCharacter::FireButtonReleased);
 
-	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this,
-		&AShooterCharacter::AimingButtonPressed);
-	PlayerInputComponent->BindAction("AimingButton", IE_Released, this,
-		&AShooterCharacter::AimingButtonReleased);
+	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &AShooterCharacter::AimingButtonPressed);
+	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &AShooterCharacter::AimingButtonReleased);
 	
-	PlayerInputComponent->BindAction("Select", IE_Pressed, this,
-		&AShooterCharacter::SelectButtonPressed);
-	PlayerInputComponent->BindAction("Select", IE_Released, this,
-		&AShooterCharacter::SelectButtonReleased);
+	PlayerInputComponent->BindAction("Select", IE_Pressed, this, &AShooterCharacter::SelectButtonPressed);
+	PlayerInputComponent->BindAction("Select", IE_Released, this, &AShooterCharacter::SelectButtonReleased);
 
-	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this,
-	&AShooterCharacter::ReloadButtonPressed);
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this,
-	&AShooterCharacter::CrouchButtonPressed);
+	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AShooterCharacter::ReloadButtonPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AShooterCharacter::CrouchButtonPressed);
 
-	PlayerInputComponent->BindAction("Fkey", IE_Pressed, this,
-&AShooterCharacter::FKeyPressed);
-	PlayerInputComponent->BindAction("1Key", IE_Pressed, this,
-&AShooterCharacter::OneKeyPressed);
-	PlayerInputComponent->BindAction("2Key", IE_Pressed, this,
-&AShooterCharacter::TwoKeyPressed);
-	PlayerInputComponent->BindAction("3Key", IE_Pressed, this,
-&AShooterCharacter::ThreeKeyPressed);
-	PlayerInputComponent->BindAction("4Key", IE_Pressed, this,
-&AShooterCharacter::FourKeyPressed);
-	PlayerInputComponent->BindAction("5Key", IE_Pressed, this,
-&AShooterCharacter::FiveKeyPressed);	
+	PlayerInputComponent->BindAction("1Key", IE_Pressed, this, &AShooterCharacter::OneKeyPressed);
+	PlayerInputComponent->BindAction("2Key", IE_Pressed, this, &AShooterCharacter::TwoKeyPressed);
+	PlayerInputComponent->BindAction("3Key", IE_Pressed, this, &AShooterCharacter::ThreeKeyPressed);
+	PlayerInputComponent->BindAction("4Key", IE_Pressed, this, &AShooterCharacter::FourKeyPressed);
+	PlayerInputComponent->BindAction("5Key", IE_Pressed, this, &AShooterCharacter::FiveKeyPressed);
+	PlayerInputComponent->BindAction("6key", IE_Pressed, this, &AShooterCharacter::SixKeyPressed);
 }
 
 // Called when the game starts or when spawned
@@ -229,41 +213,42 @@ void AShooterCharacter::BeginPlay()
 	
 }
 
-void AShooterCharacter::FKeyPressed()
+void AShooterCharacter::OneKeyPressed()
 {
 	if (EquippedWeapon->GetSlotIndex() == 0) return;
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 0);
 }
 
-void AShooterCharacter::OneKeyPressed()
+void AShooterCharacter::TwoKeyPressed()
 {
 	if (EquippedWeapon->GetSlotIndex() == 1) return;
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 1);
 }
 
-void AShooterCharacter::TwoKeyPressed()
+void AShooterCharacter::ThreeKeyPressed()
 {
 	if (EquippedWeapon->GetSlotIndex() == 2) return;
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 2);
 }
 
-void AShooterCharacter::ThreeKeyPressed()
+void AShooterCharacter::FourKeyPressed()
 {
 	if (EquippedWeapon->GetSlotIndex() == 3) return;
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 3);
 }
 
-void AShooterCharacter::FourKeyPressed()
+void AShooterCharacter::FiveKeyPressed()
 {
 	if (EquippedWeapon->GetSlotIndex() == 4) return;
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 4);
 }
 
-void AShooterCharacter::FiveKeyPressed()
+void AShooterCharacter::SixKeyPressed()
 {
 	if (EquippedWeapon->GetSlotIndex() == 5) return;
 	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 5);
 }
+
 
 void AShooterCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
 {
@@ -279,6 +264,9 @@ void AShooterCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 		{
 			StopAiming();
 		}
+		// TODO:  rapidfire weapon quick-switch
+		// quick-fix : still possible to quick-switch rapidfire by quickly pressing the fire button. 
+		bFireButtonPressed = false;
 		
 		auto OldEquippedWeapon = EquippedWeapon;
 		auto NewWeapon = Cast<AWeapon>(Inventory[NewItemIndex]);
