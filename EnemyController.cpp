@@ -1,0 +1,35 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+
+#include "EnemyController.h"
+
+#include "Enemy.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+
+AEnemyController::AEnemyController()
+{
+	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackboard Component"));
+	check(BlackboardComponent);
+
+	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("Behaviour Tree Component"));
+	check(BehaviorTreeComponent);
+}
+
+void AEnemyController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	if (InPawn == nullptr) return;
+
+	AEnemy* Enemy = Cast<AEnemy>(InPawn);
+	if (Enemy)
+	{
+		if (Enemy->GetBehaviourTree())
+		{
+			BlackboardComponent->InitializeBlackboard(*(Enemy->GetBehaviourTree()->BlackboardAsset));
+		}
+	}
+	
+}
