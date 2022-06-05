@@ -34,7 +34,9 @@ AEnemy::AEnemy() :
 	AttackR(TEXT("AttackR")),
 	BaseDamage(20.f),
 	LeftWeaponSocket(TEXT("FX_Trail_L_01")),
-	RightWeaponSocket(TEXT("FX_Trail_R_01"))
+	RightWeaponSocket(TEXT("FX_Trail_R_01")),
+	bCanAttack(true),
+	AttackWaitTime(1.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -90,7 +92,6 @@ void AEnemy::BeginPlay()
 		ECollisionChannel::ECC_Pawn,
 		ECollisionResponse::ECR_Overlap);
 	
-	
 	GetMesh()->SetCollisionResponseToChannel(
 		ECollisionChannel::ECC_Visibility,
 		ECollisionResponse::ECR_Block);
@@ -105,31 +106,19 @@ void AEnemy::BeginPlay()
 	// Get the AI Controller
 	EnemyController = Cast<AEnemyController>(GetController());
 	
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(
+			FName("CanAttack"),
+	true);
+	}
+	
 	const FVector WorldPatrolPoint = UKismetMathLibrary::TransformLocation(
 		GetActorTransform(),
 		PatrolPoint);
 	const FVector WorldPatrolPoint2 = UKismetMathLibrary::TransformLocation(
 		GetActorTransform(),
 		PatrolPoint2);
-	
-	DrawDebugSphere(
-		GetWorld(),
-		WorldPatrolPoint,
-		25.f,
-		12,
-		FColor::Red,
-		true
-		);
-
-	DrawDebugSphere(
-	GetWorld(),
-	WorldPatrolPoint2,
-	25.f,
-	12,
-	FColor::Blue,
-	true
-	);
-
 	
 	if (EnemyController)
 	{
@@ -138,11 +127,10 @@ void AEnemy::BeginPlay()
 			WorldPatrolPoint);
 
 		EnemyController->GetBlackboardComponent()->SetValueAsVector(
-	TEXT("PatrolPoint2"),
-	WorldPatrolPoint2);
+			TEXT("PatrolPoint2"),
+			WorldPatrolPoint2);
 
 		EnemyController->RunBehaviorTree(BehaviorTree);
-
 	}
 }
 
@@ -293,6 +281,19 @@ void AEnemy::PlayAttackMontage(FName Section, float PlayRate)
 		AnimInstance->Montage_Play(AttackMontage);
 		AnimInstance->Montage_JumpToSection(Section, AttackMontage);
 	}
+	bCanAttack = false;
+	GetWorldTimerManager().SetTimer(
+		AttackWaitTimer,
+		this,
+		&AEnemy::ResetCanAttack,
+		AttackWaitTime
+	);
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(
+			FName("CanAttack"),
+	false);
+	}
 }
 
 FName AEnemy::GetAttackSectionName()
@@ -355,6 +356,29 @@ void AEnemy::SpawnBlood(AShooterCharacter* Victim, FName SocketName)
 	}
 }
 
+void AEnemy::StunCharacter(AShooterCharacter* Victim)
+{
+	if (Victim)
+	{
+		const float Stun { FMath::FRandRange(0.f, 1.f) };
+		if (Stun <= Victim->GetStunChance())
+		{
+			Victim->Stun();
+		}
+	}
+}
+
+void AEnemy::ResetCanAttack()
+{
+	bCanAttack = true;
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsBool(
+			FName("CanAttack"),
+	true);
+	}
+}
+
 void AEnemy::OnLeftWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -363,19 +387,21 @@ void AEnemy::OnLeftWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	{
 		DoDamage(Character);
 		SpawnBlood(Character, LeftWeaponSocket);
+		StunCharacter(Character);
 	}
 }
 
 void AEnemy::OnRightWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-		{
-			auto Character = Cast<AShooterCharacter>(OtherActor);
-			if (Character)
-			{
-				DoDamage(Character);
-				SpawnBlood(Character, RightWeaponSocket);
-			}
-		}
+                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	auto Character = Cast<AShooterCharacter>(OtherActor);
+	if (Character)
+	{
+		DoDamage(Character);
+		SpawnBlood(Character, RightWeaponSocket);
+		StunCharacter(Character);
+	}
+}
 
 void AEnemy::ActivateLeftWeapon()
 {
@@ -437,6 +463,14 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
 	AActor* DamageCauser)
 {
+	// Set the Target Blackboard Key to agro the Character
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsObject(
+			FName("Target"),
+			DamageCauser);
+	}
+	
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;

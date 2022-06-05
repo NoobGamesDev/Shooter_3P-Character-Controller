@@ -103,6 +103,10 @@ protected:
 
 	void DoDamage(class AShooterCharacter* Victim);
 	void SpawnBlood(AShooterCharacter* Victim, FName SocketName);
+	// Attempt to stun Character
+	void StunCharacter(AShooterCharacter* Victim);
+
+	void ResetCanAttack();
 	
 private:
 	// Spawn Particles on Enemy when hit by bullets
@@ -212,6 +216,16 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	FName RightWeaponSocket;
+
+	// True if AI Enemy can Attack the Character
+	UPROPERTY(VisibleAnywhere, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bCanAttack;
+
+	FTimerHandle AttackWaitTimer;
+
+	// Minimum wait time for AI Enemy attacks
+	UPROPERTY(EditAnywhere, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float AttackWaitTime;
 
 public:	
 	// Called every frame
