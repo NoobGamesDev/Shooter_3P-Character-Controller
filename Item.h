@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
+#include "Misc/Guid.h"
 #include "Item.generated.h"
 
 UENUM(BlueprintType)
@@ -163,7 +164,7 @@ private:
 	TArray<bool> ActiveStars;
 
 	// State of the Item
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemState ItemState;
 
 	// The curve asset to use for the Item's Z location when interping
@@ -296,8 +297,12 @@ private:
 	// Background icon for the Inventory based on Rarity of Items
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Rarity", meta = (AllowPrivateAccess = "true"))
 	UTexture2D* IconBackground;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ID", meta = (AllowPrivateAccess = "true"))
+	FGuid ID;
 	
 public:
+	FORCEINLINE FGuid GetGuid() const { return ID; }
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }

@@ -22,6 +22,8 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Sound/SoundCue.h"
 #include "EnemyController.h"
+#include "Misc/Guid.h"
+#include "Containers/Array.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 // Sets default values
@@ -87,7 +89,8 @@ AShooterCharacter::AShooterCharacter() :
 	// Character Health Properties
 	Health(100.f),
 	MaxHealth(100.f),
-	StunChance(.25f)
+	StunChance(.25f),
+	bDead(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -166,6 +169,7 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 
 void AShooterCharacter::Die()
 {
+	bDead = true;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && DeathMontage)
 	{
@@ -385,10 +389,6 @@ void AShooterCharacter::EndStun()
 	{
 		Aim();
 	}
-}
-
-void AShooterCharacter::Footstep()
-{
 }
 
 void AShooterCharacter::UnHighlightInventorySlot()
@@ -784,7 +784,7 @@ void AShooterCharacter::TraceForItems()
 			const auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
 			if (TraceHitWeapon)
 			{
-				// No Slot Highligted
+				// No Slot Highlighted
 				if (HighlightedSlot == -1)
 				{
 					// Highlight Slot 
@@ -808,8 +808,12 @@ void AShooterCharacter::TraceForItems()
 			
 			if (TraceHitItem && TraceHitItem->GetPickupWidget())
 			{
-				// Show Item's Pickup Widget
-				TraceHitItem->GetPickupWidget()->SetVisibility(true);
+				if (ItemGuids.Contains(TraceHitItem->GetGuid()))
+				{
+					// Show Item's Pickup Widget
+					TraceHitItem->GetPickupWidget()->SetVisibility(true);
+				}
+
 				TraceHitItem->EnableCustomDepth();
 
 				if (Inventory.Num() >= INVENTORY_CAPACITY)
@@ -1348,30 +1352,30 @@ float AShooterCharacter::GetCrosshairSpreadMultiplier() const
 	return CrosshairSpreadMultiplier;
 }
 
-void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount)
+void AShooterCharacter::IncrementOverlappedItemCount(int8 Amount, FGuid ID)
 {
 	if (OverlappedItemCount + Amount <= 0)
 	{
 		OverlappedItemCount = 0;
 		bShouldTraceForItems = false;
+
+		ItemGuids.Empty();
 	}
 	else
 	{
 		OverlappedItemCount += Amount;
 		bShouldTraceForItems = true;
+
+		if (Amount > 0)
+		{
+			ItemGuids.Add(ID);
+		}
+		else
+		{
+			ItemGuids.Remove(ID);
+		}
 	}
 }
-
-/* 	// TODO: Remove function :: AItem has the GetInterpLocation
-FVector AShooterCharacter::GetCameraInterpLocation()
-{
-	const FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
-	const FVector CameraForward { FollowCamera->GetForwardVector() };
-	// Desired = CameraWorldLocation + Forward * A + Up * B
-	return CameraWorldLocation + CameraForward * CameraInterpDistance
-		+ FVector(0.f, 0.f, CameraInterpElevation);
-}
-*/
 
 void AShooterCharacter::GetPickupItem(AItem* Item)
 {

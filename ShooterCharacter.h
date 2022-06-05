@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "AmmoType.h"
 #include "Sound/SoundCue.h"
+#include "Misc/Guid.h"
+#include "Containers/Array.h"
 #include "ShooterCharacter.generated.h"
 
 
@@ -19,7 +21,6 @@ enum class ECombatState : uint8
 	ECS_Stunned UMETA(DisplayName = "Stunned"),
 
 	ECS_MAX UMETA(DisplayName = "DefaultMAX")
-	
 };
 
 USTRUCT(BlueprintType)
@@ -481,9 +482,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	int32 HighlightedSlot;
 
-	UFUNCTION(BlueprintCallable)
-	void Footstep();
-
 	// Character's Health
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float Health;
@@ -511,6 +509,12 @@ private:
 	// Death AnimMontage; for when Character dies
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DeathMontage;
+
+	// True when Character dies
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bDead;
+	
+	TArray<FGuid> ItemGuids;
 	
 public:
 	// Returns CameraBoom subobject
@@ -526,10 +530,7 @@ public:
 	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
 
 	// Adds/subtracts to/from OverlappedItemCount and updates bShouldTraceForItems
-	void IncrementOverlappedItemCount(int8 Amount);
-
-	// TODO: Remove function :: AItem has the GetInterpLocation
-	//FVector GetCameraInterpLocation();
+	void IncrementOverlappedItemCount(int8 Amount, FGuid ID);
 
 	void GetPickupItem(AItem* Item);
 

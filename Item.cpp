@@ -11,6 +11,7 @@
 #include "Curves/CurveVector.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Misc/Guid.h"
 
 
 // Sets default values
@@ -65,6 +66,8 @@ void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ID = FGuid::NewGuid();
+	
 	// Hide Pickup Widget
 	if (PickupWidget)
 	{
@@ -104,7 +107,7 @@ void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 		AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
 		if (ShooterCharacter)
 		{
-			ShooterCharacter->IncrementOverlappedItemCount(1);
+			ShooterCharacter->IncrementOverlappedItemCount(1, ID);
 		}
 	}
 }
@@ -117,7 +120,7 @@ void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 		AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(OtherActor);
 		if (ShooterCharacter)
 		{
-			ShooterCharacter->IncrementOverlappedItemCount(-1);
+			ShooterCharacter->IncrementOverlappedItemCount(-1, ID);
 			ShooterCharacter->UnHighlightInventorySlot();
 		}
 	}
@@ -518,7 +521,6 @@ void AItem::OnConstruction(const FTransform& Transform)
 
 		EnableGlowMaterial();
 	}
-
 }
 
 void AItem::EnableGlowMaterial()
