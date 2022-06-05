@@ -193,6 +193,11 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void EndStun();
+
+	void Die();
+	
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
 	
 public:	
 	// Called every frame
@@ -502,6 +507,10 @@ private:
 	// Change in % the Character gets stunned by Enemy Hit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float StunChance;
+
+	// Death AnimMontage; for when Character dies
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
 	
 public:
 	// Returns CameraBoom subobject

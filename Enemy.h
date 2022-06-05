@@ -107,6 +107,12 @@ protected:
 	void StunCharacter(AShooterCharacter* Victim);
 
 	void ResetCanAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
+	UFUNCTION()
+	void DestroyEnemy();
 	
 private:
 	// Spawn Particles on Enemy when hit by bullets
@@ -118,7 +124,7 @@ private:
 	class USoundCue* ImpactSound;
 
 	// Current Health of the Enemy
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float Health;
 
 	// Maximum Health of the Enemy
@@ -227,6 +233,18 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float AttackWaitTime;
 
+	// Montage containing Death animations for the AI Enemy 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
+	
+	bool bDying;
+
+	FTimerHandle DeathTimer;
+
+	// Time to Destroy() after AI Enemy Death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float DeathTime;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -234,7 +252,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void BulletHit_Implementation(FHitResult HitResult) override;
+	virtual void BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* ShooterController) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
